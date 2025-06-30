@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tourist Places Quiz & News</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --primary: #007aff;
+      --background: #f6f8fa;
+      --card-bg: #fff;
+      --accent-bg: #e6f0ff;
+      --border: #e0e0e0;
+      --shadow: 0 4px 24px rgba(0,0,0,0.06);
+      --radius: 16px;
+      --font: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--background);
+      font-family: var(--font);
+      color: #111;
+    }
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 8px;
+    }
+    .container {
+      display: flex;
+      gap: 40px;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      max-width: 1100px;
+    }
+    .quiz-card, .api-section {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px;
+      max-width: 480px;
+      width: 100%;
+      margin-bottom: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      min-width: 320px;
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin: 0 0 20px 0;
+      letter-spacing: -1px;
+    }
+    .question {
+      font-size: 1.2rem;
+      margin-bottom: 24px;
+      font-weight: 500;
+    }
+    .options {
+      display: grid;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .option-btn {
+      padding: 14px 20px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: #fafbfc;
+      font-weight: 500;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+      text-align: left;
+    }
+    .option-btn.selected {
+      background: var(--accent-bg);
+      border: 2px solid var(--primary);
+      color: var(--primary);
+    }
+    .next-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: background 0.2s;
+    }
+    .next-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .progress {
+      margin-top: 16px;
+      color: #888;
+      font-size: 0.95rem;
+      text-align: right;
+    }
+    .score {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      text-align: right;
+      color: #007aff;
+    }
+    .api-section h2 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin: 0 0 20px 0;
+      letter-spacing: -1px;
+    }
+    .show-btn {
+      width: 100%;
+      padding: 14px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: background 0.2s;
+    }
+    .news-card {
+      margin-top: 16px;
+      padding: 20px;
+      background: #f0f4f8;
+      border-radius: 10px;
+      font-size: 1rem;
+      min-height: 80px;
+    }
+    .news-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+    }
+    .news-card a {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.98rem;
+      word-break: break-word;
+    }
+    @media (max-width: 1000px) {
+      .container {
+        flex-direction: column;
+        gap: 0;
+        align-items: center;
+      }
+      .quiz-card, .api-section {
+        max-width: 600px;
+        width: 100%;
+      }
+    }
+    @media (max-width: 600px) {
+      .quiz-card, .api-section {
+        padding: 16px;
+        min-width: 0;
+      }
+      h1, .api-section h2 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="quiz-card" id="quiz-root"></div>
+    <div class="api-section">
+      <h2>Exciting Tourist Place News</h2>
+      <button class="show-btn" id="show-news-btn">Show Me Some News!</button>
+      <div id="news-info"></div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { question: "Which city is home to the Eiffel Tower?", options: ["London", "Paris", "Rome", "Berlin"], answer: 1 },
+      { question: "Where is the Great Wall located?", options: ["India", "China", "Japan", "Russia"], answer: 1 },
+      { question: "Machu Picchu is found in which country?", options: ["Brazil", "Peru", "Chile", "Argentina"], answer: 1 },
+      { question: "Which city is famous for the Colosseum?", options: ["Athens", "Istanbul", "Rome", "Madrid"], answer: 2 },
+      { question: "The Statue of Liberty is in which city?", options: ["New York", "Los Angeles", "Chicago", "Boston"], answer: 0 },
+      { question: "Which country has the Taj Mahal?", options: ["Pakistan", "India", "Nepal", "Bangladesh"], answer: 1 },
+      { question: "Sydney Opera House is located in?", options: ["Melbourne", "Auckland", "Sydney", "Brisbane"], answer: 2 },
+      { question: "Christ the Redeemer overlooks which city?", options: ["Rio de Janeiro", "Lisbon", "Buenos Aires", "Caracas"], answer: 0 },
+      { question: "The Louvre Museum is in which city?", options: ["Paris", "London", "Madrid", "Rome"], answer: 0 },
+      { question: "Angkor Wat is a famous site in?", options: ["Thailand", "Vietnam", "Cambodia", "Laos"], answer: 2 }
+    ];
+
+    const touristPlaces = [
+      "Eiffel Tower", "Great Wall of China", "Machu Picchu", "Colosseum",
+      "Statue of Liberty", "Taj Mahal", "Sydney Opera House", "Christ the Redeemer",
+      "Louvre Museum", "Angkor Wat", "Grand Canyon", "Santorini", "Petra", "Niagara Falls"
+    ];
+
+    let current = 0;
+    let selected = null;
+    let score = 0;
+
+    const root = document.getElementById('quiz-root');
+    const showNewsBtn = document.getElementById('show-news-btn');
+    const newsDiv = document.getElementById('news-info');
+
+    function renderQuiz() {
+      root.innerHTML = `
+        <h1>🌍 Tourist Places Quiz</h1>
+        <div class="score">Score: ${score} / ${questions.length}</div>
+        ${current < questions.length ? `
+          <div class="question">${questions[current].question}</div>
+          <div class="options">
+            ${questions[current].options.map((opt, idx) => `
+              <button class="option-btn${selected === idx ? " selected" : ""}" data-idx="${idx}">
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+          <button class="next-btn" id="next-btn" ${selected === null ? "disabled" : ""}>
+            ${current === questions.length - 1 ? "Finish" : "Next"}
+          </button>
+          <div class="progress">
+            Question ${current + 1} of ${questions.length}
+          </div>
+        ` : `
+          <div class="score" style="font-size:1.5rem;text-align:center;">Quiz Complete!<br>Your Score: ${score} / ${questions.length}</div>
+        `}
+      `;
+
+      if (current < questions.length) {
+        document.querySelectorAll('.option-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selected = parseInt(btn.getAttribute('data-idx'));
+            renderQuiz();
+          });
+        });
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+          if (selected === questions[current].answer) score++;
+          selected = null;
+          current++;
+          renderQuiz();
+        });
+      }
+    }
+
+    async function fetchTouristNews() {
+      newsDiv.innerHTML = `<div style="margin-top:20px;">Loading...</div>`;
+      const place = touristPlaces[Math.floor(Math.random() * touristPlaces.length)];
+      const apiKey = "pub_e93eab059e364cd0b620c892239177de";
+
+      try {
+        const resp = await fetch(`https://newsdata.io/api/1/news?apikey=${apiKey}&q=${encodeURIComponent(place)}&language=en`);
+        const data = await resp.json();
+        const articles = data.results || [];
+
+        if (articles.length === 0) {
+          newsDiv.innerHTML = `<div class="news-card">No exciting news found for <b>${place}</b> at the moment. Try again!</div>`;
+        } else {
+          const article = articles[Math.floor(Math.random() * articles.length)];
+          newsDiv.innerHTML = `
+            <div class="news-card">
+              <h3>${article.title || "Exciting Tourist News"}</h3>
+              <div style="margin-bottom:8px;"><b>Place:</b> ${place}</div>
+              <div style="margin-bottom:8px;">
+                ${article.description || ""}
+              </div>
+              ${article.link ? `<a href="${article.link}" target="_blank">Read more</a>` : ""}
+              <div style="margin-top:8px;font-size:0.92rem;color:#666;">
+                ${article.pubDate ? "Published: " + new Date(article.pubDate).toLocaleString() : ""}
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        newsDiv.innerHTML = `<div class="news-card">Error fetching news. Please try again later.</div>`;
+      }
+    }
+
+    renderQuiz();
+    showNewsBtn.addEventListener('click', fetchTouristNews);
+  </script>
+</body>
+</html>
